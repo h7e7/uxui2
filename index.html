@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REMNANT App Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a quiet editorial marketplace — gallery white, black type, small caps labels
+   IDEA: a pop-up book; every space unfolds from paper pieces and folds back for the next brand
+   PICTURE: isometric paper dioramas rising from an open book; product renders drawn from the same model
+   COLOUR and TYPE: off-white #F6F5F2, card #ECEBE7, ink #111, Inter; skins bring the only colour
+   LAYOUT: one app, two shells — 1280 web frame or 390 phone frame, switched with container queries */
+:root{--bg:#F6F5F2;--card:#ECEBE7;--ink:#111;--mut:#77746F;--line:#DEDCD6;--white:#fff;--acc:#111}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:#D9D7D2;color:var(--ink);font:13px/1.45 Inter,system-ui,sans-serif;overflow-x:clip}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+/* presenter bar */
+.pres{position:sticky;top:0;z-index:20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:#111;color:#fff}
+.pres b{font-weight:800;letter-spacing:.02em;margin-right:6px}
+.tg{display:flex;border:1px solid #555;border-radius:999px;overflow:hidden}
+.tg button{border:0;background:none;color:#bbb;padding:6px 14px;font-size:12px;font-weight:600;min-height:32px}
+.tg button.on{background:#fff;color:#111}
+.jump{display:flex;gap:4px;flex-wrap:wrap}
+.jump button{border:1px solid #444;background:none;color:#ddd;border-radius:999px;padding:4px 10px;font-size:11px}
+.jump button.on{border-color:#fff;color:#fff}
+.stagewrap{display:flex;justify-content:center;padding:24px 12px 40px}
+.dev{background:var(--bg);overflow:hidden;position:relative;box-shadow:0 30px 70px -25px rgba(0,0,0,.4)}
+.dev.web{width:1280px;height:820px;border-radius:12px;transform-origin:top center}
+.dev.mob{width:390px;height:844px;border:10px solid #111;border-radius:46px}
+.app{container-type:inline-size;height:100%;display:flex;flex-direction:column;position:relative}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+/* nav */
+.nav{display:flex;align-items:center;gap:26px;padding:0 32px;height:58px;border-bottom:1px solid var(--line);background:var(--bg);flex:none}
+.logo{font-weight:800;font-size:17px;letter-spacing:-.01em;border:0;background:none;padding:0}
+.nav .links{display:flex;gap:22px;flex:1;justify-content:center}
+.nav .links button{border:0;background:none;font-size:10.5px;font-weight:600;letter-spacing:.06em;color:#444;padding:6px 0;border-bottom:1.5px solid transparent}
+.nav .links button.on{color:#111;border-color:#111}
+.srch{display:flex;align-items:center;gap:6px;background:var(--card);border-radius:999px;padding:0 12px;height:30px;width:190px}
+.si{width:14px;height:14px;flex:none;stroke:#555;fill:none;stroke-width:2;stroke-linecap:round}
+.srch input{border:0;background:none;outline:0;width:100%;font-size:11.5px}
+.ic{border:0;background:none;width:30px;height:30px;display:grid;place-items:center;position:relative;padding:0}
+.ic svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.badge{position:absolute;top:1px;right:0;background:#111;color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:8px;display:grid;place-items:center;padding:0 3px}
+.mtop{display:none}
+.tabs{display:none}
+/* common */
+.pg{padding:28px 32px 40px;max-width:1280px;margin:0 auto}
+.eyebrow{font-size:9.5px;font-weight:600;letter-spacing:.08em;color:var(--mut);text-transform:uppercase}
+h1{font-size:34px;line-height:1.05;margin:4px 0 6px;letter-spacing:-.02em}
+h2{font-size:22px;margin:2px 0 4px;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:12.5px;margin:0}
+.btn{border:0;background:#111;color:#fff;font-size:11px;font-weight:700;letter-spacing:.04em;padding:0 16px;height:38px;border-radius:4px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn.o{background:#fff;color:#111;border:1px solid #111}
+.btn.s{height:30px;font-size:10.5px;padding:0 11px}
+.btn:disabled{opacity:.35;cursor:default}
+.chip{border:0;background:var(--card);border-radius:999px;padding:6px 12px;font-size:11px;font-weight:500;white-space:nowrap}
+.chip.on{background:#111;color:#fff}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hr{height:1px;background:var(--line);margin:22px 0}
+.panel{background:var(--card);border-radius:6px;padding:14px}
+.lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin:0 0 8px}
+.kv{font-size:11.5px;color:#333;line-height:1.55}
+.big{font-size:22px;font-weight:800;letter-spacing:-.01em}
+.small{font-size:10.5px;color:var(--mut)}
+.toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;font-size:12px;font-weight:600;padding:8px 14px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;white-space:nowrap}
+.toast.show{opacity:1}
+/* home */
+.hero{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:center}
+.issue{background:#fff;border-radius:8px;padding:10px 14px;margin-top:18px;max-width:250px}
+.issue b{font-size:11px;letter-spacing:.04em}
+.book{position:relative;background:#fff;border-radius:8px;aspect-ratio:16/9.4;overflow:hidden}
+.book svg{position:absolute;inset:0;width:100%;height:100%}
+.hot{position:absolute;transform:translate(-50%,-100%);background:#fff;border:0;border-radius:999px;padding:4px 10px;font-size:9.5px;font-weight:700;letter-spacing:.05em;box-shadow:0 2px 8px rgba(0,0,0,.15);white-space:nowrap}
+.hot:hover{background:#111;color:#fff}
+.bk-nav{position:absolute;bottom:12px;left:12px;right:12px;display:flex;justify-content:space-between;pointer-events:none}
+.bk-nav button{pointer-events:auto;width:32px;height:32px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15);font-weight:700}
+.arch{position:absolute;top:12px;right:16px;font-size:9.5px;font-weight:700;letter-spacing:.07em}
+.dotsP{display:flex;gap:6px;justify-content:center;margin-top:8px;font-size:10.5px;align-items:center}
+.dotsP i{width:6px;height:6px;border-radius:50%;background:#ccc}.dotsP i.on{background:#111}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.pc{background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.pc .im{background:var(--card);border-radius:6px;aspect-ratio:1/.82;position:relative;display:grid;place-items:center;overflow:hidden}
+.pc .im svg{width:78%;height:78%}
+.av{position:absolute;top:8px;left:8px;background:#fff;border-radius:999px;font-size:8.5px;font-weight:700;letter-spacing:.05em;padding:3px 8px}
+.hrt{position:absolute;top:6px;right:6px;border:0;background:none;width:26px;height:26px;display:grid;place-items:center}
+.hrt svg{width:15px;height:15px;stroke:#111;fill:none;stroke-width:1.7}
+.hrt.on svg{fill:#111}
+.pc .cat{font-size:8.5px;font-weight:700;letter-spacing:.07em;color:var(--mut);margin-top:9px}
+.pc .nm{font-size:12px;font-weight:700;margin-top:1px}
+.pc .dm{font-size:10px;color:var(--mut)}
+.pc .pr{display:flex;justify-content:space-between;align-items:baseline;margin-top:5px}
+.pc .pr b{font-size:14px}.pc .pr span{font-size:8.5px;font-weight:700;letter-spacing:.06em;color:var(--mut)}
+.steps4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.steps4 div{border-top:1.5px solid #111;padding-top:10px}
+.steps4 b{display:block;font-size:12px;margin-bottom:3px}
+.foot{display:flex;justify-content:space-between;font-size:10px;color:var(--mut);border-top:1px solid var(--line);padding-top:14px;margin-top:30px}
+/* materials */
+.mlayout{display:grid;grid-template-columns:210px 1fr;gap:26px}
+.filters .grp{margin-bottom:18px}
+.filters label{display:flex;gap:8px;align-items:center;font-size:12px;padding:3px 0;cursor:pointer}
+.filters input[type=checkbox]{accent-color:#111}
+.filters input[type=range]{width:100%;accent-color:#111}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}
+.toolbar select{border:1px solid var(--line);background:#fff;border-radius:4px;height:30px;font-size:11.5px;padding:0 8px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.empty{padding:40px;text-align:center;color:var(--mut);background:var(--card);border-radius:6px}
+/* item */
+.ilayout{display:grid;grid-template-columns:1.15fr 1fr;gap:34px}
+.gal{background:var(--card);border-radius:8px;aspect-ratio:1/.85;display:grid;place-items:center;position:relative}
+.gal svg{width:70%;height:80%}
+.thumbs{display:flex;gap:8px;margin-top:10px}
+.thumbs button{width:62px;height:54px;border-radius:5px;background:var(--card);border:1.5px solid transparent;padding:4px}
+.thumbs button.on{border-color:#111}
+.thumbs svg{width:100%;height:100%}
+.specs{display:grid;grid-template-columns:110px 1fr;gap:7px 10px;font-size:12px;margin:14px 0}
+.specs dt{color:var(--mut)}.specs dd{margin:0;font-weight:500}
+.pass{display:flex;gap:0;margin-top:10px}
+.pass div{flex:1;border-left:1px solid var(--line);padding:4px 10px;font-size:10.5px}
+.pass div:first-child{border-left:0;padding-left:0}
+.pass b{display:block;font-size:11px}
+.stamp{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;font-size:8px;font-weight:800;margin-bottom:4px}
+.qty{display:flex;align-items:center;border:1px solid var(--line);border-radius:4px;height:38px;background:#fff}
+.qty button{border:0;background:none;width:32px;height:100%;font-size:15px}
+.qty span{width:26px;text-align:center;font-weight:700}
+/* reskin */
+.rlayout{display:grid;grid-template-columns:1fr 300px;gap:22px}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ba .gal{aspect-ratio:1/.95}
+.ba .tagl{position:absolute;top:10px;left:10px;font-size:9px;font-weight:700;letter-spacing:.07em;background:#fff;border-radius:999px;padding:3px 9px}
+.moods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mood{border:1.5px solid transparent;background:#fff;border-radius:6px;padding:8px;text-align:left}
+.mood.on{border-color:#111}
+.mood .sw{display:flex;gap:3px;margin-bottom:6px}.mood .sw i{width:16px;height:16px;border-radius:50%}
+.mood b{font-size:11px;display:block}.mood span{font-size:9.5px;color:var(--mut)}
+.skinl button{display:flex;width:100%;justify-content:space-between;align-items:center;border:0;border-bottom:1px solid var(--line);background:none;padding:9px 0;text-align:left;font-size:12px}
+.skinl button.on b{text-decoration:underline}
+.skinl i{width:14px;height:14px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:-2px;border:1px solid rgba(0,0,0,.15)}
+.bar{height:8px;background:#fff;border-radius:4px;overflow:hidden;margin:4px 0 10px}.bar i{display:block;height:100%;background:#111}
+.pick{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.pick button{flex:none;width:86px;border:1.5px solid transparent;background:var(--card);border-radius:6px;padding:4px;font-size:9.5px;font-weight:600}
+.pick button.on{border-color:#111}
+.pick svg{width:100%;height:56px}
+/* planner/preview */
+.wlayout{display:grid;grid-template-columns:230px 1fr 230px;gap:14px;height:540px}.wlayout>*{min-height:0}
+.lib{display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.lib .sr{background:#fff;border-radius:4px;height:30px;display:flex;align-items:center;padding:0 10px;gap:6px}
+.lib .sr input{border:0;outline:0;background:none;width:100%;font-size:11.5px}
+.seg{display:flex;background:#E2E0DB;border-radius:4px;padding:2px}
+.seg button{flex:1;border:0;background:none;font-size:10.5px;font-weight:600;padding:5px 0;border-radius:3px;color:#555}
+.seg button.on{background:#fff;color:#111}
+.lst{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+.li{display:flex;gap:10px;align-items:center;background:#fff;border-radius:5px;padding:6px;border:1.5px solid transparent;cursor:grab;touch-action:none}
+.li.on{border-color:#111}
+.li .tn{width:52px;height:46px;background:var(--card);border-radius:4px;flex:none}
+.li .tn svg{width:100%;height:100%}
+.li b{font-size:11px;display:block}.li span{font-size:9.5px;color:var(--mut);display:block}
+.li .add{margin-left:auto;border:0;background:none;font-size:18px;width:26px;height:26px}
+.cv{background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.cvh{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font-size:11px;font-weight:600}
+.dim2{display:flex;background:var(--card);border-radius:3px;padding:2px}
+.dim2 button{border:0;background:none;font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:4px 9px;border-radius:2px}
+.dim2 button.on{background:#111;color:#fff}
+.cvb{flex:1;position:relative;touch-action:none}
+.cvb svg{position:absolute;inset:0;width:100%;height:100%}
+.cvf{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-top:1px solid var(--line);font-size:9.5px;font-weight:600;letter-spacing:.05em;color:var(--mut)}
+.cvf .ctl{display:flex;gap:2px;align-items:center;color:#111}
+.cvf .ctl button{border:0;background:none;width:26px;height:24px;font-size:13px}
+.cvf .ctl button:disabled{opacity:.3}
+.side{min-height:0}.side .panel{display:flex;flex-direction:column;gap:10px;height:100%;overflow-y:auto}
+.side .sec{border-bottom:1px solid #D6D4CE;padding-bottom:11px}
+.cvhint{position:absolute;top:10px;left:12px;display:flex;gap:6px;z-index:2}
+.cvhint span{background:var(--bg);border-radius:999px;font-size:9.5px;font-weight:600;padding:3px 9px}
+.cvhint span.bad{background:#111;color:#fff}
+.stepsF{display:flex;gap:22px;font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--mut);border-top:1px solid var(--line);padding-top:12px;margin-top:16px}
+.stepsF b{color:#111}
+/* cart */
+.clayout{display:grid;grid-template-columns:1fr 320px;gap:26px}
+.cl{display:grid;grid-template-columns:70px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.cl .tn{width:70px;height:60px;background:var(--card);border-radius:5px}.cl .tn svg{width:100%;height:100%}
+.cl b{font-size:12.5px}.cl .rm{border:0;background:none;font-size:10.5px;color:var(--mut);text-decoration:underline;padding:0}
+.tl{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:8px}
+.tl div{border-top:2px solid #ccc;padding-top:6px;font-size:10.5px}
+.tl div.on{border-color:#111}
+.tl b{display:block;font-size:11px}
+.sumr{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}
+/* sell */
+.slayout{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.drop{border:1.5px dashed #aaa;border-radius:8px;background:#fff;padding:26px;text-align:center;cursor:pointer;display:block}
+.drop input{display:none}
+.drop b{display:block;font-size:13px;margin:6px 0 2px}
+.prev{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.prev img{width:72px;height:72px;object-fit:cover;border-radius:5px}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fld label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#444}
+.fld input,.fld select{height:36px;border:1px solid var(--line);border-radius:4px;background:#fff;padding:0 10px;font-size:13px}
+.fld2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grade{display:flex;gap:10px;align-items:center;background:#fff;border-radius:6px;padding:12px;margin-top:12px}
+.grade .g{width:46px;height:46px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px}
+.mylist{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+:focus-visible{outline:2px solid #111;outline-offset:2px}
+
+/* ===== MOBILE (container) ===== */
+@container (max-width:700px){
+ .nav{display:none}
+ .mtop{display:flex;align-items:center;gap:6px;padding:40px 14px 8px;background:var(--bg);border-bottom:1px solid var(--line);flex:none}
+ .mtop .logo{flex:1;font-size:16px}
+ .tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--bg);padding:6px 0 18px;flex:none}
+ .tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9.5px;font-weight:600;color:#999;position:relative}
+ .tabs button.on{color:#111}
+ .tabs svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+ .tabs .badge{right:22%}
+ .pg{padding:16px 14px 28px}
+ h1{font-size:28px}h2{font-size:19px}
+ .hero{grid-template-columns:1fr;gap:12px}
+ .hero .htxt{order:2}
+ .issue{max-width:none}
+ .book{aspect-ratio:1/.86}
+ .grid4,.grid3{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .steps4{grid-template-columns:1fr 1fr}
+ .mlayout{grid-template-columns:1fr}
+ .filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
+ .filters .grp{display:contents}.filters .grp>.lbl,.filters .grp>.rng{display:none}
+ .filters label{flex:none;background:var(--card);border-radius:999px;padding:5px 11px;font-size:11px}
+ .filters input[type=checkbox]{display:none}
+ .filters label:has(input:checked){background:#111;color:#fff}
+ .ilayout,.rlayout,.clayout,.slayout{grid-template-columns:1fr;gap:16px}
+ .ba{gap:8px}
+ .moods{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .wlayout{display:flex;flex-direction:column;height:auto;gap:10px}
+ .wlayout .lib{order:2}
+ .wlayout .cv{order:1;height:380px}
+ .wlayout .side{order:3}
+ .lib .lst{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding-bottom:4px}
+ .li{flex:none;width:200px}
+ .side .panel{height:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .side .sec{border:0;padding:0}
+ .side .sec.full{grid-column:1/-1}
+ .stepsF{flex-wrap:wrap;gap:8px 14px}
+ .tl{grid-template-columns:repeat(5,minmax(0,1fr))}.tl div{font-size:9.5px}
+ .fld2{grid-template-columns:1fr 1fr 1fr}
+ .mylist{grid-template-columns:1fr 1fr}
+ .foot{flex-direction:column;gap:4px}
+ .hide-m{display:none!important}
+}
+@container (min-width:701px){.only-m{display:none!important}}
+@media (max-width:500px){.stagewrap{padding:0}.dev.mob{border:0;border-radius:0;width:100%;height:100dvh}.pres .jump{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <symbol id="i-s" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+ <symbol id="i-h" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></symbol>
+ <symbol id="i-c" viewBox="0 0 24 24"><path d="M5 7h14l-1.5 12h-11zM9 7V5a3 3 0 016 0v2"/></symbol>
+ <symbol id="i-book" viewBox="0 0 24 24"><path d="M3 5h7a2 2 0 012 2v13a2 2 0 00-2-2H3zM21 5h-7a2 2 0 00-2 2v13a2 2 0 012-2h7z"/></symbol>
+ <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></symbol>
+ <symbol id="i-plan" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></symbol>
+ <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V3h9l9 9-9 9zM7.5 7.5h.01"/></symbol>
+</svg>
+<div class="pres">
+  <b>REMNANT*</b>
+  <div class="tg" id="devTg"><button data-d="web" class="on">Web</button><button data-d="mob">Mobile</button></div>
+  <div class="jump" id="jump"></div>
+</div>
+<div class="stagewrap" id="stagewrap"><div class="dev web" id="dev"><div class="app" id="app"></div></div></div>
+
+<script>
+{
+// ================= DATA =================
+const ROOM={W:5,D:4,H:2.8};
+const MOODS={mori:{n:'Mori Girl Forest',d:'Lace · vintage wood · natural textures',sw:['#EFE6D2','#9CAF88','#7A5A3C']},char:{n:'Character World',d:'Butter yellow · baby blue · pink',sw:['#F2C94C','#9CC8EC','#F2B8CB']},noir:{n:'Minimal Noir',d:'Black · ash · smoked glass',sw:['#2E2E2E','#D8CBB8','#8A8A8A']}};
+const CAT={
+ shelf:{id:'6257',cat:'Shelving',name:'Steel display shelf',from:'CHUBBY CLUB pop-up · Seongsu',dates:'Nov 20 – 26',grade:'A',cond:'Very good',km:11,pick:'Dec 1 – 2',W:1.2,D:.4,H:1.8,price:180000,nw:450000,qty:3,
+  skins:[{n:'CHUBBY Yellow',mood:'char',m:'Gloss yellow + character decals',c:{f:'#F2C94C',b:'#F2C94C',a:'#9CC8EC'},cost:0,orig:1},{n:'Cream & Oak',mood:'mori',m:'Matte cream frame + oak ply tops',c:{f:'#EFE6D2',b:'#C49A6C',a:'#FFFFFF'},cost:70000,days:2},{n:'Noir',mood:'noir',m:'Black powder coat + ash ply',c:{f:'#2E2E2E',b:'#D8CBB8',a:'#2E2E2E'},cost:20000,days:2}],
+  parts:(c,W,D,H)=>[[0,0,0,.05,D,H,c.f],[W-.05,0,0,.05,D,H,c.f],[.05,.12,.55,W-.1,.04,.18,c.a],[.05,0,.08,W-.1,D,.04,c.b],[.05,0,.62,W-.1,D,.04,c.b],[.05,0,1.16,W-.1,D,.04,c.b],[.05,0,1.72,W-.1,D,.06,c.b]],
+  top:(c)=>({fill:c.b,lines:3})},
+ hanger:{id:'6241',cat:'Racks',name:'Steel garment rack',from:'NOVA pop-up · Hannam',dates:'Nov 14 – 24',grade:'B+',cond:'Good',km:6,pick:'Dec 2',W:1.5,D:.5,H:1.55,price:120000,nw:320000,qty:2,
+  skins:[{n:'Raw Steel',mood:'orig',m:'Original brushed steel',c:{f:'#A9A9A9',g:['#DADADA','#BDBDBD','#E8E8E8','#CFCFCF']},cost:0,orig:1},{n:'Lace Cream',mood:'mori',m:'Cream paint + lace trim',c:{f:'#EFE6D2',g:['#F4EEE2','#9CAF88','#C9A27A','#E8C8C0']},cost:40000,days:1},{n:'Pastel Pop',mood:'char',m:'Pink paint + ribbon wrap',c:{f:'#F2B8CB',g:['#9CC8EC','#F2C94C','#FFFFFF','#F2B8CB']},cost:35000,days:1},{n:'Black',mood:'noir',m:'Matte black paint',c:{f:'#2E2E2E',g:['#D9D9D9','#7A7A7A','#BDBDBD','#EDEDED']},cost:15000,days:1}],
+  parts:(c,W,D,H)=>{const p=[[0,0,0,.06,D,.05,c.f],[W-.06,0,0,.06,D,.05,c.f],[0,D/2-.03,0,.06,.06,H,c.f],[W-.06,D/2-.03,0,.06,.06,H,c.f],[0,D/2-.03,H-.05,W,.06,.05,c.f]];const gw=(W-.3)/4;for(let i=0;i<4;i++)p.push([.15+i*gw+.02,.08,.6,gw-.05,D-.16,.85,c.g[i]]);return p;},
+  top:(c)=>({fill:c.g[1],rail:c.f})},
+ table:{id:'6253',cat:'Tables',name:'Birch display table',from:'Ohesio pop-up · Hannam',dates:'Nov 8 – 20',grade:'A',cond:'Very good',km:6,pick:'Dec 2',W:1.6,D:.8,H:.75,price:150000,nw:390000,qty:1,
+  skins:[{n:'Raw Birch',mood:'orig',m:'Untreated birch ply',c:{t:'#E6D3B0',l:'#C9B48E'},cost:0,orig:1},{n:'Oak Oil',mood:'mori',m:'Birch ply + oak oil',c:{t:'#C49A6C',l:'#8A6544'},cost:30000,days:1},{n:'Milk White',mood:'char',m:'Milk white lacquer',c:{t:'#FBF8F2',l:'#E7DFD2'},cost:20000,days:1},{n:'Charcoal',mood:'noir',m:'Charcoal stain',c:{t:'#3A3A3A',l:'#222222'},cost:25000,days:1}],
+  parts:(c,W,D,H)=>[[.05,.05,0,.06,.06,H-.05,c.l],[W-.11,.05,0,.06,.06,H-.05,c.l],[.05,D-.11,0,.06,.06,H-.05,c.l],[W-.11,D-.11,0,.06,.06,H-.05,c.l],[0,0,H-.05,W,D,.05,c.t]],
+  top:(c)=>({fill:c.t,inset:1})},
+ curtain:{id:'6250',cat:'Panels',name:'Linen partition panel',from:'Gallery strike · Seongsu',dates:'Nov 1 – 25',grade:'A',cond:'Very good',km:11,pick:'Dec 1',W:1.4,D:.3,H:2.0,price:95000,nw:260000,qty:2,
+  skins:[{n:'Raw Linen',mood:'orig',m:'Natural linen',c:{f:'#7A5A3C',p:'#E9E1D3'},cost:0,orig:1},{n:'Sage Linen',mood:'mori',m:'Sage green linen',c:{f:'#7A5A3C',p:'#9CAF88'},cost:30000,days:2},{n:'Baby Pink',mood:'char',m:'Baby pink cotton',c:{f:'#FFFFFF',p:'#F2B8CB'},cost:30000,days:2},{n:'Black Felt',mood:'noir',m:'Black acoustic felt',c:{f:'#2E2E2E',p:'#3A3A3A'},cost:30000,days:2}],
+  parts:(c,W,D,H)=>[[0,0,0,.06,D,.05,c.f],[W-.06,0,0,.06,D,.05,c.f],[0,D/2-.03,0,.06,.06,H,c.f],[W-.06,D/2-.03,0,.06,.06,H,c.f],[.06,D/2-.04,.05,W-.12,.08,H-.12,c.p]],
+  top:(c)=>({fill:c.p,thin:1})},
+ pedestal:{id:'6230',cat:'Displays',name:'Secondhand display pedestal',from:'Brand launch · Apgujeong',dates:'Oct 30 – Nov 9',grade:'B+',cond:'Good',km:9,pick:'Dec 1 – 3',W:.6,D:.6,H:.9,price:75000,nw:180000,qty:4,
+  skins:[{n:'Grey MDF',mood:'orig',m:'Primer grey MDF',c:{a:'#D6D3CD'},cost:0,orig:1},{n:'Walnut Veneer',mood:'mori',m:'Walnut veneer wrap',c:{a:'#7A5A3C'},cost:45000,days:2},{n:'Lilac Gloss',mood:'char',m:'Lilac gloss paint',c:{a:'#C9B6E4'},cost:40000,days:2},{n:'Black Matte',mood:'noir',m:'Black matte paint',c:{a:'#2E2E2E'},cost:30000,days:1}],
+  parts:(c,W,D,H)=>[[0,0,0,W,D,H,c.a],[-.02,-.02,H-.03,W+.04,D+.04,.03,c.a]],top:(c)=>({fill:c.a,inset:1})},
+ photo:{id:'6188',cat:'Displays',name:'Photo arch + plinth',from:'Brand event · Jamsil',dates:'Nov 15 – 17',grade:'B',cond:'Fair',km:18,pick:'Dec 2',W:1.2,D:1.0,H:2.0,price:90000,nw:280000,qty:1,
+  skins:[{n:'Primer White',mood:'orig',m:'Primer white',c:{a:'#F2F0EB',s:'#DCD8D0'},cost:0,orig:1},{n:'Sage Arch',mood:'mori',m:'Sage paint + wood plinth',c:{a:'#9CAF88',s:'#C49A6C'},cost:40000,days:2},{n:'Rose & Cream',mood:'char',m:'Rose paint + cream plinth',c:{a:'#F2B8CB',s:'#FBF3E4'},cost:40000,days:2}],
+  parts:(c,W,D,H)=>[[0,0,0,W,D,.2,c.s],[0,0,.2,W,.08,H-.2,c.a]],top:(c)=>({fill:c.s,arch:c.a})},
+ acrylic:{id:'6247',cat:'Displays',name:'Acrylic cube set ×3',from:'NOVA pop-up · Hannam',dates:'Nov 14 – 24',grade:'A',cond:'Very good',km:6,pick:'Dec 2',W:.4,D:.4,H:1.2,price:64000,nw:150000,qty:2,
+  skins:[{n:'Clear',mood:'orig',m:'Clear acrylic',c:{a:'#DDEFF5'},cost:0,orig:1},{n:'Frosted Pink',mood:'char',m:'Frosted pink film',c:{a:'#F6D3DF'},cost:15000,days:1},{n:'Smoked',mood:'noir',m:'Smoked grey film',c:{a:'#9A9A9A'},cost:15000,days:1}],
+  parts:(c,W,D,H)=>[[0,0,0,W,D,.4,c.a],[0,0,.4,W,D,.4,c.a],[0,0,.8,W,D,.4,c.a]],top:(c)=>({fill:c.a,inset:1}),glass:1},
+ fitting:{id:'NEW',cat:'New',name:'Fitting booth (new)',from:'New purchase — no secondhand match',dates:'—',grade:'New',cond:'New',km:0,pick:'Ships Dec 3',W:1.0,D:1.0,H:2.1,price:135000,nw:135000,qty:5,
+  skins:[{n:'Sage Linen',mood:'mori',m:'Sage linen + brown rail',c:{f:'#7A5A3C',p:'#7E9A6E'},cost:0,orig:1},{n:'Pastel Stripe',mood:'char',m:'Pink stripe curtain',c:{f:'#FFFFFF',p:'#F2B8CB'},cost:0}],
+  parts:(c,W,D,H)=>[[0,0,H-.04,W,.04,.04,c.f],[W-.04,0,H-.04,.04,D,.04,c.f],[0,0,0,W,.05,H-.06,c.p],[W-.05,0,0,.05,D*.7,H-.06,c.p]],top:(c)=>({fill:c.p,L:1})}
+};
+const KEYS=Object.keys(CAT);
+const skinFor=(k,mood)=>{const i=CAT[k].skins.findIndex(s=>s.mood===mood);return i<0?0:i;};
+const ISSUES=[
+ {no:'01',key:'mori',title:'Mori Girl Forest',d:'Lace · vintage wood · natural textures',items:[{k:'hanger',x:.1,y:.9,rot:1},{k:'shelf',x:1.9,y:.05,rot:0},{k:'table',x:1.7,y:1.9,rot:0},{k:'curtain',x:3.9,y:.4,rot:1},{k:'pedestal',x:4.1,y:2.6,rot:0}],tags:[['hanger','01 RACK'],['shelf','02 SHELF'],['table','03 TABLE']]},
+ {no:'02',key:'char',title:'Character World',d:'CHUBBY CLUB · plush, keyrings & stationery',items:[{k:'shelf',x:.4,y:.05,rot:0},{k:'shelf',x:1.7,y:.05,rot:0},{k:'acrylic',x:3.2,y:.2,rot:0},{k:'photo',x:3.7,y:1.2,rot:1},{k:'table',x:1.2,y:2.0,rot:0},{k:'pedestal',x:.2,y:2.4,rot:0}],tags:[['shelf','01 SHELF'],['photo','02 PHOTO ARCH'],['table','03 TABLE']]}
+];
+// ================= STATE =================
+let S={dev:'web',route:'home',issue:0,itemK:'shelf',itemSkin:1,filter:'all',cats:[],maxKm:20,gradeA:false,sort:'rec',q:'',saved:['shelf','table','curtain'],
+ plan:[{u:1,k:'shelf',x:1.9,y:.05,rot:0,s:1},{u:2,k:'hanger',x:.1,y:.9,rot:1,s:1},{u:3,k:'table',x:1.7,y:1.9,rot:0,s:1},{u:4,k:'curtain',x:3.9,y:.4,rot:1,s:1}],
+ sel:1,view:0,zoom:1,libTab:'all',libQ:'',mood:'mori',rk:'shelf',sold:[],photos:[],sellCat:'Shelving'};
+let uid=10;const hist=[],fut=[];
+try{const sv=JSON.parse(localStorage.getItem('remnant-app')||'null');if(sv){Object.assign(S,sv);uid=Math.max(10,...S.plan.map(i=>i.u))+1;}}catch(e){}
+const save=()=>{try{const {photos,...rest}=S;localStorage.setItem('remnant-app',JSON.stringify(rest));}catch(e){}};
+const push=()=>{hist.push(JSON.stringify(S.plan));fut.length=0;if(hist.length>60)hist.shift();};
+const $=s=>document.querySelector(s);const app=$('#app');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const won=n=>'₩'+Math.round(n).toLocaleString('en-US');
+// ================= RENDER HELPERS =================
+const shade=(h,f)=>{const n=parseInt(h.slice(1),16);const r=Math.round((n>>16&255)*f),g=Math.round((n>>8&255)*f),b=Math.round((n&255)*f);return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);};
+const pts=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+function faces(P,x0,x1,y0,y1,z0,z1,col,o={}){const s=o.stroke||'rgba(40,30,20,.35)',sw=o.sw??.6,op=o.op?` fill-opacity="${o.op}"`:'';
+ return `<polygon points="${pts([P(x1,y0,z0),P(x1,y0,z1),P(x1,y1,z1),P(x1,y1,z0)])}" fill="${shade(col,o.r??.8)}"${op} stroke="${s}" stroke-width="${sw}" stroke-linejoin="round"/><polygon points="${pts([P(x0,y1,z0),P(x1,y1,z0),P(x1,y1,z1),P(x0,y1,z1)])}" fill="${shade(col,o.l??.92)}"${op} stroke="${s}" stroke-width="${sw}" stroke-linejoin="round"/><polygon points="${pts([P(x0,y0,z1),P(x1,y0,z1),P(x1,y1,z1),P(x0,y1,z1)])}" fill="${col}"${op} stroke="${s}" stroke-width="${sw}" stroke-linejoin="round"/>`;}
+const rr=(a,b,c,d,rot,W,D)=>{const t=(x,y)=>rot===0?[x,y]:rot===1?[y,W-x]:rot===2?[W-x,D-y]:[D-y,x];const p=t(a,b),q=t(a+c,b+d);return [Math.min(p[0],q[0]),Math.min(p[1],q[1]),Math.abs(q[0]-p[0]),Math.abs(q[1]-p[1])];};
+const dims=it=>{const c=CAT[it.k];return it.rot%2?{w:c.D,d:c.W}:{w:c.W,d:c.D};};
+function parts(it){const c=CAT[it.k];const sk=c.skins[it.s]||c.skins[0];return c.parts(sk.c,c.W,c.D,c.H).map(p=>{const [a,b,w,d]=rr(p[0],p[1],p[3],p[4],it.rot||0,c.W,c.D);return {x:it.x+a,y:it.y+b,w,d,z:p[2],h:p[5],col:p[6]};});}
+const w2v=(x,y,r,W,D)=>r===0?[x,y]:r===1?[y,W-x]:r===2?[W-x,D-y]:[D-y,x];
+const v2w=(vx,vy,r,W,D)=>r===0?[vx,vy]:r===1?[W-vy,vx]:r===2?[W-vx,D-vy]:[vy,D-vx];
+function thumb(k,s){const c=CAT[k];const ps=parts({k,x:0,y:0,rot:0,s});const kk=20,cc=kk*.866;const P=(x,y,z)=>[(x-y)*cc,(x+y)*kk/2-z*kk];let a=1e9,b=1e9,e=-1e9,f=-1e9;for(const p of ps)for(const [x,y,z] of [[p.x,p.y,p.z],[p.x+p.w,p.y,p.z],[p.x,p.y+p.d,p.z],[p.x+p.w,p.y+p.d,p.z],[p.x,p.y,p.z+p.h],[p.x+p.w,p.y+p.d,p.z+p.h]]){const q=P(x,y,z);a=Math.min(a,q[0]);e=Math.max(e,q[0]);b=Math.min(b,q[1]);f=Math.max(f,q[1]);}
+ const sh=`<ellipse cx="${(a+e)/2}" cy="${f-2}" rx="${(e-a)*.42}" ry="${(e-a)*.08}" fill="#000" opacity=".07"/>`;
+ return `<svg viewBox="${a-6} ${b-6} ${e-a+12} ${f-b+12}" aria-hidden="true">${sh}${ps.map(p=>({...p,key:p.x+p.w+p.y+p.d})).sort((x,y)=>x.key-y.key).map(p=>faces(P,p.x,p.x+p.w,p.y,p.y+p.d,p.z,p.z+p.h,p.col,{op:c.glass?.6:0})).join('')}</svg>`;}
+// iso room scene
+function scene(items,o){const W=o.W,D=o.D,r=o.r||0;const VW=r%2?D:W,VD=r%2?W:D;const H=o.H;const cw=o.cw,ch=o.ch;
+ const k=(o.zoom||1)*Math.min((cw-o.pad*2)/((VW+VD)*.866),(ch-o.pad*2)/((VW+VD)*.5+H+(o.base||0)));const c=k*.866;const ox=(cw-(VW+VD)*c)/2+VD*c;const oy=(ch-((VW+VD)*.5+H+(o.base||0))*k)/2+H*k+(o.dy||0);const P=(x,y,z)=>[ox+(x-y)*c,oy+(x+y)*k/2-z*k];
+ let h='';const t=.12;
+ if(o.book){const m=1.3,bz=.22;const bx0=-m,bx1=VW+m,by0=-m*.7,by1=VD+m;h+=faces(P,bx0,bx1,by0,by1,-bz-.08,-bz,'#E7DFD0',{stroke:'rgba(80,60,40,.25)'});for(let i=0;i<4;i++)h+=`<polyline points="${pts([P(bx0,by1,-bz+i*.06),P(bx1,by1,-bz+i*.06),P(bx1,by0,-bz+i*.06)])}" fill="none" stroke="rgba(120,100,70,.35)" stroke-width=".7"/>`;h+=faces(P,bx0,bx1,by0,by1,-bz,0,'#FBF8F1',{stroke:'rgba(80,60,40,.25)'});const mx=VW/2;h+=`<line x1="${P(bx0+(bx1-bx0)/2,by0,0)[0]}" y1="${P(bx0+(bx1-bx0)/2,by0,0)[1]}" x2="${P(bx0+(bx1-bx0)/2,by1,0)[0]}" y2="${P(bx0+(bx1-bx0)/2,by1,0)[1]}" stroke="rgba(120,100,70,.35)" stroke-width="1"/>`;}
+ h+=`<polygon points="${pts([P(0,0,0),P(VW,0,0),P(VW,VD,0),P(0,VD,0)])}" fill="${o.floor}" stroke="rgba(40,30,20,.3)" stroke-width=".8"/>`;
+ if(o.planks){for(let i=.25;i<VW;i+=.25)h+=`<line x1="${P(i,0,0)[0]}" y1="${P(i,0,0)[1]}" x2="${P(i,VD,0)[0]}" y2="${P(i,VD,0)[1]}" stroke="rgba(120,90,50,.13)" stroke-width=".7"/>`;}
+ if(o.grid){for(let i=.5;i<VW;i+=.5)h+=`<line x1="${P(i,0,0)[0]}" y1="${P(i,0,0)[1]}" x2="${P(i,VD,0)[0]}" y2="${P(i,VD,0)[1]}" stroke="rgba(0,0,0,.08)" stroke-width=".6"/>`;for(let j=.5;j<VD;j+=.5)h+=`<line x1="${P(0,j,0)[0]}" y1="${P(0,j,0)[1]}" x2="${P(VW,j,0)[0]}" y2="${P(VW,j,0)[1]}" stroke="rgba(0,0,0,.08)" stroke-width=".6"/>`;}
+ h+=faces(P,-t,VW,-t,0,0,H,o.wall,{r:.86,l:.95})+faces(P,-t,0,0,VD,0,H,o.wall,{r:.86,l:.95});
+ if(o.door){const dz=[[o.door[0],D-.9],[o.door[1],D-.9],[o.door[1],D],[o.door[0],D]].map(([x,y])=>{const v=w2v(x,y,r,W,D);return P(v[0],v[1],0);});h+=`<polygon points="${pts(dz)}" fill="#111" fill-opacity=".04" stroke="#111" stroke-opacity=".35" stroke-width=".8" stroke-dasharray="3 3"/>`;}
+ if(o.sel){const it=items.find(i=>i.u===o.sel);if(it){const d=dims(it);const [ax,ay]=w2v(it.x,it.y,r,W,D),[bx,by]=w2v(it.x+d.w,it.y+d.d,r,W,D);const x0=Math.min(ax,bx),x1=Math.max(ax,bx),y0=Math.min(ay,by),y1=Math.max(ay,by);h+=`<polygon points="${pts([P(x0,y0,0),P(x1,y0,0),P(x1,y1,0),P(x0,y1,0)])}" fill="${o.bad?'#d00':'#111'}" fill-opacity=".08" stroke="${o.bad?'#d00':'#111'}" stroke-width="1.4" stroke-dasharray="5 3"/>`;}}
+ let all=[];for(const it of items)for(const p of parts(it)){const [ax,ay]=w2v(p.x,p.y,r,W,D),[bx,by]=w2v(p.x+p.w,p.y+p.d,r,W,D);const x0=Math.min(ax,bx),x1=Math.max(ax,bx),y0=Math.min(ay,by),y1=Math.max(ay,by);all.push({u:it.u,x0,x1,y0,y1,z0:p.z,z1:p.z+p.h,col:p.col,glass:CAT[it.k].glass,key:x0+x1+y0+y1+p.z*.01});}
+ all.sort((a,b)=>a.key-b.key);for(const p of all)h+=`<g ${o.drag?`data-u="${p.u}" style="cursor:grab"`:''}>${faces(P,p.x0,p.x1,p.y0,p.y1,p.z0,p.z1,p.col,{op:p.glass?.6:0})}</g>`;
+ h+=faces(P,VW,VW+t,-t,VD,0,.12,o.wall,{r:.86,l:.95})+faces(P,0,VW+t,VD,VD+t,0,.12,o.wall,{r:.86,l:.95});
+ const tops={};for(const it of items){const c=CAT[it.k];const d=dims(it);const [cx,cy]=w2v(it.x+d.w/2,it.y+d.d/2,r,W,D);tops[it.u??it.k]=P(cx,cy,c.H);}
+ return {svg:h,P,k,c,ox,oy,tops,VW,VD};}
+// ================= LAYOUT PIECES =================
+const NAV=[['home','POP-UP ARCHIVE'],['materials','MATERIALS'],['reskin','AI RE-SKIN'],['planner','2D PLANNER'],['preview','3D PREVIEW'],['sell','SELL']];
+const TABS=[['home','Archive','i-book'],['materials','Materials','i-grid'],['reskin','Re-skin','i-tag'],['planner','Plan','i-plan'],['cart','Cart','i-c']];
+function shell(body){const cartN=S.plan.length;return `
+ <div class="nav"><button class="logo" data-go="home">REMNANT*</button><div class="links">${NAV.map(([r,l])=>`<button data-go="${r}" class="${S.route===r||(r==='planner'&&S.route==='preview'&&0)?'on':''}">${l}</button>`).join('')}</div>
+  <label class="srch"><svg class="si"><use href="#i-s"/></svg><input id="gq" placeholder="Search materials" value="${esc(S.q)}"></label>
+  <button class="ic" data-go="materials" aria-label="Saved"><svg><use href="#i-h"/></svg><span class="badge">${S.saved.length}</span></button>
+  <button class="ic" data-go="cart" aria-label="Cart"><svg><use href="#i-c"/></svg><span class="badge">${cartN}</span></button></div>
+ <div class="mtop"><button class="logo" data-go="home">REMNANT*</button><button class="ic" data-go="materials" aria-label="Search"><svg><use href="#i-s"/></svg></button><button class="ic" data-go="sell" aria-label="Sell"><svg><use href="#i-tag"/></svg></button><button class="ic" data-go="materials" aria-label="Saved"><svg><use href="#i-h"/></svg><span class="badge">${S.saved.length}</span></button></div>
+ <div class="scroll" id="scroll">${body}</div>
+ <nav class="tabs">${TABS.map(([r,l,i])=>`<button data-go="${r}" class="${S.route===r||(r==='planner'&&S.route==='preview')||(r==='materials'&&S.route==='item')?'on':''}"><svg><use href="#${i}"/></svg>${l}${r==='cart'?`<span class="badge">${cartN}</span>`:''}</button>`).join('')}</nav>
+ <div class="toast" id="toast"></div>`;}
+function card(k){const c=CAT[k];const s=c.skins.findIndex(x=>x.orig);const sv=S.saved.includes(k);return `<div class="pc" data-item="${k}" role="button" tabindex="0"><div class="im"><span class="av">${k==='fitting'?'NEW':'AVAILABLE'}</span><button class="hrt ${sv?'on':''}" data-save="${k}" aria-label="Save"><svg><use href="#i-h"/></svg></button>${thumb(k,s)}</div><div class="cat">${esc(c.cat.toUpperCase())}</div><div class="nm">${esc(c.name)}</div><div class="dm">W${c.W*100} × D${c.D*100} × H${c.H*100} cm</div><div class="pr"><b>${won(c.price)}</b><span>${esc(c.cond.toUpperCase())}</span></div></div>`;}
+const footer=`<div class="foot"><span>Design with what already exists.</span><span>REMNANT / CIRCULAR POP-UP MARKETPLACE · UI concept — materials, prices and availability are sample data.</span></div>`;
+// ================= PAGES =================
+function pHome(){const is=ISSUES[S.issue];const items=is.items.map((p,i)=>({...p,u:'h'+i,s:skinFor(p.k,is.key)}));
+ return `<div class="pg"><div class="hero"><div class="htxt"><div class="eyebrow">Curated pop-up editions · Issue ${is.no}</div><h1>One material,<br>many pop-ups.</h1><p class="sub">Discover pop-up spaces made from reusable fixtures.<br>Turn the page to explore a different brand story.</p><div class="row" style="margin-top:16px"><button class="btn" data-go="materials">EXPLORE →</button><button class="btn o" data-use-issue="1">USE THIS LOOK</button></div><div class="issue"><b>${is.no} / ${esc(is.title.toUpperCase())}</b><div class="small">${esc(is.d)}</div></div></div>
+ <div><div class="book" id="book" data-items='${esc(JSON.stringify(items))}'></div><div class="dotsP">${ISSUES.map((x,i)=>`<i class="${i===S.issue?'on':''}"></i>`).join('')}<span>&nbsp;${is.no} / 0${ISSUES.length}</span></div><div class="small" style="text-align:center;margin-top:4px">SELECT A TAG TO EXPLORE THE MATERIAL ↗</div></div></div>
+ <div class="hr"></div><div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">Marketplace / curated secondhand fixtures</div><h2>Available materials</h2><p class="sub">Find secondhand fixtures ready for your next pop-up.</p></div><button class="btn o s" data-go="materials">BROWSE ALL MATERIALS ↗</button></div>
+ <div class="row" style="margin:12px 0 14px">${['all','Shelving','Racks','Tables','Displays','Panels'].map(f=>`<button class="chip ${S.filter===f?'on':''}" data-hf="${f}">${f==='all'?'All items':f}</button>`).join('')}</div>
+ <div class="grid4">${KEYS.filter(k=>k!=='fitting'&&(S.filter==='all'||CAT[k].cat===S.filter)).slice(0,4).map(card).join('')}</div>
+ <div class="hr"></div><div class="steps4"><div><b>01 Pick</b><span class="small">Fixtures left over from real pop-ups, graded by AI photos.</span></div><div><b>02 Re-skin</b><span class="small">Keep the structure, change the surface to your brand.</span></div><div><b>03 Place</b><span class="small">Lay paper pieces on your plan, unfold it in 3D.</span></div><div><b>04 Pass it on</b><span class="small">Relist after your pop-up. Every fixture gets a new stamp.</span></div></div>${footer}</div>`;}
+function pMaterials(){const q=S.q.trim().toLowerCase();let list=KEYS.filter(k=>{const c=CAT[k];return (!S.cats.length||S.cats.includes(c.cat))&&(c.km<=S.maxKm)&&(!S.gradeA||c.grade==='A')&&(!q||(c.name+' '+c.cat+' '+c.from).toLowerCase().includes(q));});
+ if(S.sort==='low')list.sort((a,b)=>CAT[a].price-CAT[b].price);if(S.sort==='near')list.sort((a,b)=>CAT[a].km-CAT[b].km);if(S.sort==='save')list.sort((a,b)=>(CAT[b].nw-CAT[b].price)-(CAT[a].nw-CAT[a].price));
+ const cats=['Shelving','Racks','Tables','Displays','Panels','New'];
+ return `<div class="pg"><div class="eyebrow">Marketplace</div><h1>Materials</h1><p class="sub">${KEYS.length} fixtures from finished pop-ups around Seoul, ready to be re-skinned.</p><div class="hr" style="margin:16px 0"></div>
+ <div class="mlayout"><aside class="filters"><div class="grp"><div class="lbl">Category</div>${cats.map(c=>`<label><input type="checkbox" data-cat="${c}" ${S.cats.includes(c)?'checked':''}>${c}</label>`).join('')}</div>
+ <div class="grp"><div class="lbl">Distance</div><div class="rng"><input type="range" min="5" max="20" step="1" value="${S.maxKm}" id="km" aria-label="Max distance"><div class="small">Within ${S.maxKm} km of The Hyundai Seoul</div></div><label class="only-m"><input type="checkbox" data-near ${S.maxKm<=10?'checked':''}>≤ 10 km</label></div>
+ <div class="grp"><div class="lbl">Condition</div><label><input type="checkbox" id="ga" ${S.gradeA?'checked':''}>Grade A only</label></div></aside>
+ <div><div class="toolbar"><span class="small">${list.length} results${S.q?` for “${esc(S.q)}”`:''}</span><select id="sort" aria-label="Sort"><option value="rec">Recommended</option><option value="low">Price: low to high</option><option value="near">Nearest pickup</option><option value="save">Biggest saving</option></select></div>
+ ${list.length?`<div class="grid3">${list.map(card).join('')}</div>`:`<div class="empty">No fixtures match. Try a wider distance or fewer filters.</div>`}</div></div>${footer}</div>`;}
+function pItem(){const k=S.itemK,c=CAT[k];const s=Math.min(S.itemSkin,c.skins.length-1);const sk=c.skins[s];const inPlan=S.plan.filter(i=>i.k===k).length;
+ return `<div class="pg"><div class="small" style="margin-bottom:12px"><button class="chip" data-go="materials">← Materials</button> &nbsp;${esc(c.cat)} / #${c.id}</div>
+ <div class="ilayout"><div><div class="gal"><span class="av">${sk.orig?'AS IS':'AI RE-SKIN PREVIEW'}</span>${thumb(k,s)}</div><div class="thumbs">${c.skins.map((x,i)=>`<button class="${i===s?'on':''}" data-isk="${i}" title="${esc(x.n)}">${thumb(k,i)}</button>`).join('')}</div></div>
+ <div><div class="eyebrow">${esc(c.cat)} · #${c.id}</div><h1 style="font-size:28px">${esc(c.name)}</h1><div class="row"><span class="big">${won(c.price)}</span><span class="small">new ≈ ${won(c.nw)} · save ${Math.round((1-c.price/c.nw)*100)}%</span></div>
+ <dl class="specs"><dt>Size</dt><dd>W${c.W*100} × D${c.D*100} × H${c.H*100} cm</dd><dt>Condition</dt><dd>Grade ${esc(c.grade)} · ${esc(c.cond)} <span class="small">(AI photo grading)</span></dd><dt>Available</dt><dd>${c.qty} pcs</dd><dt>Pickup</dt><dd>${esc(c.pick)}${c.km?` · ${c.km} km away`:''}</dd><dt>Skin shown</dt><dd>${esc(sk.n)} — ${esc(sk.m)}${sk.cost?` · +${won(sk.cost)}`:''}</dd></dl>
+ <div class="row"><button class="btn" data-addplan="${k}">${inPlan?`ADD ANOTHER (${inPlan} IN PLAN)`:'ADD TO PLAN'}</button><button class="btn o" data-rk="${k}">TRY AI RE-SKIN ↗</button><button class="hrt ${S.saved.includes(k)?'on':''}" style="position:static" data-save="${k}" aria-label="Save"><svg><use href="#i-h"/></svg></button></div>
+ <div class="hr"></div><div class="lbl">Material passport</div><div class="pass"><div><span class="stamp">01</span><b>${esc(c.from.split(' · ')[0])}</b>${esc(c.from.split(' · ')[1]||'')} · ${esc(c.dates)}</div><div><span class="stamp">02</span><b>Your pop-up</b>The Hyundai B2 · Dec 4 – 10</div><div style="color:var(--mut)"><span class="stamp" style="border-style:dashed">03</span><b>Next brand?</b>Relist from Dec 11</div></div>
+ <p class="small" style="margin-top:14px">AI grading and re-skin previews are estimates. Final finish is confirmed with the re-skin partner.</p></div></div>
+ <div class="hr"></div><h2>Pairs well with</h2><div class="grid4" style="margin-top:10px">${KEYS.filter(x=>x!==k&&x!=='fitting').slice(0,4).map(card).join('')}</div>${footer}</div>`;}
+function pReskin(){const k=S.rk,c=CAT[k];const oi=c.skins.findIndex(x=>x.orig);const si=skinFor(k,S.mood);const sk=c.skins[si];const tot=c.price+sk.cost;
+ return `<div class="pg"><div class="eyebrow">AI Re-skin</div><h1>Same structure, your surface.</h1><p class="sub">Pick a fixture and a brand mood. We keep the frame and change only paint, tops and fabric.</p>
+ <div class="pick" style="margin:14px 0">${KEYS.filter(x=>x!=='fitting').map(x=>`<button class="${x===k?'on':''}" data-rkp="${x}">${thumb(x,CAT[x].skins.findIndex(s=>s.orig))}#${CAT[x].id}</button>`).join('')}</div>
+ <div class="rlayout"><div><div class="ba"><div class="gal"><span class="tagl">BEFORE · ${esc(c.skins[oi].n.toUpperCase())}</span>${thumb(k,oi)}</div><div class="gal" style="background:#E4E1D9"><span class="tagl" style="background:#111;color:#fff">AFTER · ${esc(sk.n.toUpperCase())}</span>${thumb(k,si)}</div></div>
+ <div class="panel" style="margin-top:12px"><div class="lbl">Skin layers</div><div class="kv">${esc(sk.m)} · frame kept as is · lead time ${sk.days||0} day${(sk.days||0)===1?'':'s'}</div></div></div>
+ <div class="panel"><div class="lbl">Brand mood</div><div class="moods">${Object.entries(MOODS).map(([key,m])=>`<button class="mood ${S.mood===key?'on':''}" data-mood="${key}"><div class="sw">${m.sw.map(x=>`<i style="background:${x}"></i>`).join('')}</div><b>${esc(m.n)}</b></button>`).join('')}</div>
+ <div class="lbl" style="margin-top:14px">Variations for #${c.id}</div><div class="skinl">${c.skins.map((x,i)=>`<button class="${i===si?'on':''}" data-sk="${i}"><span><i style="background:${x.c.f||x.c.t||x.c.p||x.c.a}"></i><b>${esc(x.n)}</b></span><span class="small">${x.cost?'+'+won(x.cost):'as is'}</span></button>`).join('')}</div>
+ <div class="lbl" style="margin-top:14px">Cost vs. new</div><div class="small">New fixture</div><div class="bar"><i style="width:100%;background:#B9B6AF"></i></div><div class="row" style="justify-content:space-between"><span class="small">REMNANT + re-skin</span><b>${won(tot)}</b></div><div class="bar"><i style="width:${Math.round(tot/c.nw*100)}%"></i></div><div class="small">Saves ${won(c.nw-tot)} vs ${won(c.nw)} new</div>
+ <div class="row" style="margin-top:14px"><button class="btn" data-applyrk="${k}">USE THIS SKIN → PLAN</button></div></div></div>${footer}</div>`;}
+function libHTML(){const q=S.libQ.toLowerCase();const list=KEYS.filter(k=>(S.libTab==='all'||(S.libTab==='saved'?S.saved.includes(k):['shelf','table','curtain','pedestal'].includes(k)))&&(!q||CAT[k].name.toLowerCase().includes(q)));
+ return `<div class="lib panel"><div class="lbl" style="margin:0">${S.route==='planner'?'Paper pieces':'Material library'}</div><div class="small hide-m" style="margin-top:-6px">${S.route==='planner'?'Pick up a fixture. Place it on the plan.':'Drag a fixture into the room.'}</div><label class="sr"><svg class="si"><use href="#i-s"/></svg><input id="libq" placeholder="Search reusable fixtures" value="${esc(S.libQ)}"></label>
+ <div class="seg">${[['all','All items'],['ai','AI picks'],['saved','Saved']].map(([t,l])=>`<button class="${S.libTab===t?'on':''}" data-lt="${t}">${l}</button>`).join('')}</div>
+ <div class="lst">${list.map((k,i)=>{const c=CAT[k];const n=S.plan.filter(p=>p.k===k).length;return `<div class="li" data-lk="${k}"><div class="tn">${thumb(k,skinFor(k,S.mood))}</div><div><b>${S.route==='planner'?`0${i+1} / `:''}${esc(c.name)}</b><span>${c.W*100} × ${c.D*100}${S.route==='preview'?' × '+c.H*100:''} cm</span><span style="color:#111;font-weight:700">${won(c.price)}${n?` · ×${n}`:''}</span></div><button class="add" data-addk="${k}" aria-label="Add">+</button></div>`;}).join('')||'<div class="small">No fixtures</div>'}</div></div>`;}
+function sideHTML(){const it=S.plan.find(i=>i.u===S.sel);const c=it&&CAT[it.k];const tot=planTotal();const ch=checks();
+ return `<div class="side"><div class="panel"><div class="sec"><div class="lbl">${S.route==='planner'?'Paper workspace':'Space details'}</div><div class="kv">Room dimensions<br>W ${ROOM.W*100} cm · D ${ROOM.D*100} cm · H ${ROOM.H*100} cm</div></div>
+ <div class="sec"><div class="lbl">Selected ${S.route==='planner'?'cut-out':'fixture'}</div>${it?`<div class="kv"><b>${esc(c.name)}</b><br>${Math.round(dims(it).w*100)} × ${Math.round(dims(it).d*100)} × ${c.H*100} cm · ${esc(c.skins[it.s].n)}</div><div class="row" style="margin-top:6px"><button class="btn o s" data-act="rot">ROTATE</button><button class="btn o s" data-act="dup">COPY</button><button class="btn o s" data-act="del">REMOVE</button></div><button class="btn o s" style="margin-top:6px;width:100%;justify-content:center" data-rk="${it.k}">APPLY AI RE-SKIN ↗</button>`:'<div class="small">Tap a piece on the plan.</div>'}</div>
+ <div class="sec full"><div class="lbl">Checks</div><div class="kv">${ch.ov?'✕ '+ch.ov+' overlap':'✓ No overlaps'}<br>${ch.door?'✓ Entrance clear':'✕ Entrance blocked'}<br>${ch.tight?'✕ Aisle under 90 cm':'✓ Aisles 90 cm +'}<br>Floor used ${Math.round(ch.area*100)}%</div></div>
+ <div class="sec full" style="border:0"><div class="lbl">Estimated ${S.route==='planner'?'materials':'fixture cost'}</div><div class="big">${won(tot)}</div><div class="small">Includes re-skin · ${S.plan.length} pieces · delivery at checkout</div><button class="btn" style="margin-top:10px;width:100%;justify-content:center" data-go="cart">ADD TO CART →</button></div></div></div>`;}
+function pWork(mode){const is3=mode==='preview';return `<div class="pg"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">${is3?'Your space, unfolded':'Your space, on paper'}</div><h1>${is3?'3D Preview':'2D Paper Planner'}</h1><p class="sub">${is3?'Unfold your floor plan and place available secondhand fixtures.':'Arrange secondhand fixtures like paper cut-outs before unfolding your space in 3D.'}</p></div><button class="btn hide-m" id="saveP">SAVE PROJECT ↗</button></div>
+ <div class="wlayout" style="margin-top:16px">${libHTML()}<div class="cv"><div class="cvh"><span>${{mori:'Mori Girl',char:'Character World',noir:'Minimal Noir'}[S.mood]} Pop-up / ${ROOM.W*ROOM.D}㎡</span><div class="dim2"><button data-go="planner" class="${!is3?'on':''}">2D PLAN</button><button data-go="preview" class="${is3?'on':''}">3D POP-UP</button></div></div>
+ <div class="cvb" id="cvb"><div class="cvhint" id="cvhint"></div><svg id="cvs" role="img" aria-label="${is3?'3D room':'Floor plan'}"></svg></div>
+ <div class="cvf">${is3?'<span>FOLD → UNFOLD YOUR SPACE</span>':'<span class="hide-m">DRAG TO PLACE · ROTATE · PEEL OFF · UNFOLD IN 3D</span><span class="only-m">DRAG · TAP TO SELECT</span>'}<div class="ctl"><button id="undo" aria-label="Undo" ${hist.length?'':'disabled'}>↶</button><button id="redo" aria-label="Redo" ${fut.length?'':'disabled'}>↷</button>${is3?`<button id="rl" aria-label="Orbit left">⟲</button><button id="rr" aria-label="Orbit right">⟳</button><button id="zo" aria-label="Zoom out">−</button><span>${Math.round(S.zoom*100)}%</span><button id="zi" aria-label="Zoom in">+</button>`:''}</div></div></div>${sideHTML()}</div>
+ <div class="stepsF">${is3?'<span><b>01</b> / True-to-scale placement</span><span><b>02</b> / Available fixtures only</span><span><b>03</b> / Re-skin & cost review</span>':'<span><b>01</b> / Pick a paper piece</span><span><b>02</b> / Place it on your plan</span><span><b>03</b> / Unfold to 3D preview</span>'}</div>${footer}</div>`;}
+function planTotal(){return S.plan.reduce((a,it)=>a+CAT[it.k].price+CAT[it.k].skins[it.s].cost,0);}
+function pCart(){const sub=planTotal();const tr=S.plan.length?240000+S.plan.length*40000:0;const nw=S.plan.reduce((a,it)=>a+CAT[it.k].nw,0);const tot=sub+tr;
+ return `<div class="pg"><div class="eyebrow">Order #0412 · Seoyeon pop-up · The Hyundai B2</div><h1>Cart & handover</h1><div class="clayout" style="margin-top:14px"><div>
+ ${S.plan.length?S.plan.map(it=>{const c=CAT[it.k],sk=c.skins[it.s];return `<div class="cl"><div class="tn">${thumb(it.k,it.s)}</div><div><b>${esc(c.name)}</b> <span class="small">#${c.id}</span><div class="small">${esc(sk.n)}${sk.cost?` re-skin +${won(sk.cost)}`:''} · from ${esc(c.from)}</div><button class="rm" data-rm="${it.u}">Remove</button></div><b>${won(c.price+sk.cost)}</b></div>`;}).join(''):`<div class="empty">Your plan is empty. <button class="btn s" data-go="materials" style="margin-left:8px">BROWSE MATERIALS</button></div>`}
+ <div class="hr"></div><div class="lbl">Handover</div><div class="tl"><div><b>Nov 27</b>Dismantle at Seongsu</div><div><b>Dec 2</b>Re-skin partner</div><div class="on"><b>Dec 3</b>Install · 2 crew</div><div><b>Dec 10</b>Pop-up ends</div><div><b>Dec 11</b>Relist / return</div></div>
+ <div class="panel" style="margin-top:16px"><div class="lbl">After your pop-up</div><div class="row">${['Relist automatically','List as rental','Return to REMNANT depot'].map((t,i)=>`<button class="chip ${i===0?'on':''}" data-after>${t}</button>`).join('')}</div></div></div>
+ <div><div class="panel"><div class="lbl">Summary</div><div class="sumr"><span>Fixtures & re-skin</span><b>${won(sub)}</b></div><div class="sumr"><span>Transport & install</span><b>${won(tr)}</b></div><div class="hr" style="margin:10px 0"></div><div class="sumr"><span>Total</span><span class="big">${won(tot)}</span></div><div class="small">Buying new ≈ ${won(nw+tr)} · you save ${won(Math.max(0,nw-sub))}</div><button class="btn" style="width:100%;justify-content:center;margin-top:14px" id="req" ${S.plan.length?'':'disabled'}>REQUEST HANDOVER →</button><button class="btn o" style="width:100%;justify-content:center;margin-top:8px" data-go="planner">EDIT PLAN</button></div>
+ <p class="small" style="margin-top:10px">AI re-skin images are previews. 3D placement checks layout only, not safety or building code.</p></div></div>${footer}</div>`;}
+function pSell(){return `<div class="pg"><div class="eyebrow">Sell · after your pop-up</div><h1>Give your fixtures a next stage.</h1><p class="sub">Photograph what you're dismantling. AI grades the condition and suggests a fair price.</p>
+ <div class="slayout" style="margin-top:16px"><div><label class="drop"><input type="file" id="ph" accept="image/*" multiple><svg class="si" style="width:24px;height:24px;margin:0 auto;display:block"><use href="#i-c"/></svg><b>Drop photos or tap to upload</b><span class="small">Front, side and any damage · up to 8</span></label><div class="prev" id="prev">${S.photos.map(u=>`<img src="${u}" alt="Uploaded fixture">`).join('')}</div>
+ ${S.photos.length?`<div class="grade"><div class="g">A</div><div><b>AI condition: Grade A</b><div class="small">Light scratches on 2 corners · structure intact · reskinnable</div></div></div>`:''}</div>
+ <form id="sf"><div class="fld"><label for="sn">Fixture name</label><input id="sn" value="Steel display shelf" required></div><div class="fld"><label for="sc">Category</label><select id="sc">${['Shelving','Racks','Tables','Displays','Panels'].map(c=>`<option ${S.sellCat===c?'selected':''}>${c}</option>`).join('')}</select></div>
+ <div class="fld2"><div class="fld"><label for="sw">W cm</label><input id="sw" type="number" value="120"></div><div class="fld"><label for="sd">D cm</label><input id="sd" type="number" value="40"></div><div class="fld"><label for="sh">H cm</label><input id="sh" type="number" value="180"></div></div>
+ <div class="fld2"><div class="fld"><label for="sq">Qty</label><input id="sq" type="number" value="3"></div><div class="fld" style="grid-column:span 2"><label for="sp">Pickup window</label><input id="sp" value="Dec 11 – 12 · Seongsu"></div></div>
+ <div class="fld"><label for="spr">Price per piece (KRW)</label><input id="spr" type="number" value="170000"><span class="small">Suggested ₩150,000 – ₩190,000 from similar listings</span></div><button class="btn" type="submit">PUBLISH LISTING</button></form></div>
+ <div class="hr"></div><h2>My listings</h2><div class="mylist" style="margin-top:10px">${S.sold.length?S.sold.map(x=>`<div class="panel"><b>${esc(x.n)}</b><div class="small">${esc(x.c)} · ${esc(x.q)} pcs · ${won(x.p)}</div><div class="small">Live · 0 requests</div></div>`).join(''):'<div class="small">No listings yet.</div>'}</div>${footer}</div>`;}
+// ================= CHECKS =================
+const hit=(a,b,m=0)=>{const A=dims(a),B=dims(b);return a.x<b.x+B.w+m-.01&&a.x+A.w+m>b.x+.01&&a.y<b.y+B.d+m-.01&&a.y+A.d+m>b.y+.01;};
+const DOOR=[2.0,3.0];
+function checks(){const P=S.plan;let ov=0,tight=0;for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){if(hit(P[i],P[j]))ov++;else if(hit(P[i],P[j],.9))tight++;}
+ const door=!P.some(it=>{const d=dims(it);return it.y+d.d>ROOM.D-.9&&it.x<DOOR[1]&&it.x+d.w>DOOR[0];});const area=P.reduce((a,it)=>{const d=dims(it);return a+d.w*d.d;},0)/(ROOM.W*ROOM.D);return {ov,tight,door,area};}
+const overlaps=it=>S.plan.some(o=>o!==it&&hit(it,o));
+const snap=v=>Math.round(v*10)/10;
+function clampIt(it){const d=dims(it);it.x=Math.max(0,Math.min(ROOM.W-d.w,snap(it.x)));it.y=Math.max(0,Math.min(ROOM.D-d.d,snap(it.y)));}
+function findFree(it){if(!overlaps(it))return;const x0=it.x,y0=it.y;for(let rad=.2;rad<4;rad+=.2)for(let a=0;a<16;a++){it.x=x0+Math.cos(a/16*Math.PI*2)*rad;it.y=y0+Math.sin(a/16*Math.PI*2)*rad;clampIt(it);if(!overlaps(it))return;}it.x=x0;it.y=y0;}
+function addToPlan(k,pos){push();const it={u:uid++,k,x:0,y:0,rot:0,s:skinFor(k,S.mood)};const d=dims(it);if(pos){it.x=pos[0]-d.w/2;it.y=pos[1]-d.d/2;}else{it.x=ROOM.W/2-d.w/2;it.y=ROOM.D/2-d.d/2;}clampIt(it);S.plan.push(it);findFree(it);S.sel=it.u;toast('Added '+CAT[k].name);return it;}
+// ================= CANVAS =================
+let G={};
+function drawWork(){const svg=$('#cvs');if(!svg)return;const cw=svg.clientWidth||600,ch=svg.clientHeight||400;svg.setAttribute('viewBox',`0 0 ${cw} ${ch}`);const sel=S.plan.find(i=>i.u===S.sel);const bad=sel&&overlaps(sel);
+ if(S.route==='preview'){const sc=scene(S.plan,{W:ROOM.W,D:ROOM.D,H:1.6,cw,ch,pad:26,r:S.view,zoom:S.zoom,floor:'#E9D9BD',wall:'#F7F5F1',planks:1,door:DOOR,sel:S.sel,bad,drag:1});G={...sc,iso:1};let h=sc.svg;
+  if(sel){const tp=sc.tops[sel.u];h+=`<line x1="${tp[0]}" y1="${tp[1]}" x2="${tp[0]}" y2="${tp[1]-16}" stroke="#111" stroke-width="1"/><g data-h="rot" style="cursor:pointer"><circle cx="${tp[0]}" cy="${tp[1]-26}" r="10" fill="#111"/><text x="${tp[0]}" y="${tp[1]-22}" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">↻</text></g><g transform="translate(${tp[0]},${tp[1]-46})"><rect x="-58" y="-10" width="116" height="18" rx="9" fill="#fff" stroke="#111" stroke-width=".8"/><text text-anchor="middle" y="3" font-size="9" font-weight="700" letter-spacing=".05em">${esc(CAT[sel.k].name.toUpperCase().slice(0,20))}</text></g>`;}
+  svg.innerHTML=h;}
+ else{const pad=34;const k=Math.min((cw-pad*2)/ROOM.W,(ch-pad*2-10)/ROOM.D);const ox=(cw-ROOM.W*k)/2,oy=(ch-ROOM.D*k)/2+4;G={k,ox,oy,iso:0};let h=`<rect width="${cw}" height="${ch}" fill="#FBFAF7"/>`;
+  for(let x=ox%(k/5);x<cw;x+=k/5)h+=`<line x1="${x}" y1="0" x2="${x}" y2="${ch}" stroke="rgba(0,0,0,.05)"/>`;for(let y=oy%(k/5);y<ch;y+=k/5)h+=`<line x1="0" y1="${y}" x2="${cw}" y2="${y}" stroke="rgba(0,0,0,.05)"/>`;
+  h+=`<text x="14" y="18" font-size="8.5" font-weight="700" letter-spacing=".08em" fill="#999">FLOOR PLAN / 1:40</text><text x="${ox+ROOM.W*k/2}" y="${oy-12}" text-anchor="middle" font-size="9.5" fill="#666">${ROOM.W*100} cm</text><text x="${ox-14}" y="${oy+ROOM.D*k/2}" text-anchor="middle" font-size="9.5" fill="#666" transform="rotate(-90 ${ox-14} ${oy+ROOM.D*k/2})">${ROOM.D*100} cm</text>`;
+  h+=`<path d="M ${ox+DOOR[0]*k} ${oy+ROOM.D*k} H ${ox} V ${oy} H ${ox+ROOM.W*k} V ${oy+ROOM.D*k} H ${ox+DOOR[1]*k}" fill="none" stroke="#7A7670" stroke-width="7"/><path d="M ${ox+DOOR[0]*k} ${oy+ROOM.D*k} V ${oy+(ROOM.D-.9)*k} A ${.9*k} ${.9*k} 0 0 1 ${ox+(DOOR[0]+.9)*k} ${oy+ROOM.D*k}" fill="none" stroke="#999" stroke-dasharray="3 3"/><text x="${ox+(DOOR[0]+.5)*k}" y="${oy+ROOM.D*k+16}" text-anchor="middle" font-size="8.5" font-weight="700" letter-spacing=".08em" fill="#666">ENTRY</text>`;
+  for(const it of S.plan){const c=CAT[it.k],sk=c.skins[it.s];const d=dims(it);const x=ox+it.x*k,y=oy+it.y*k,w=d.w*k,hh=d.d*k;const on=it.u===S.sel;const tp=c.top(sk.c);const st=on?(overlaps(it)?'#d00':'#111'):'rgba(0,0,0,.25)';
+   let inner='';const ix=x+3,iy=y+3,iw=w-6,ih=hh-6;if(tp.lines){const n=3;for(let i=1;i<=n;i++){if(w>hh)inner+=`<line x1="${ix}" y1="${iy+ih*i/(n+1)}" x2="${ix+iw}" y2="${iy+ih*i/(n+1)}" stroke="rgba(0,0,0,.25)"/>`;else inner+=`<line x1="${ix+iw*i/(n+1)}" y1="${iy}" x2="${ix+iw*i/(n+1)}" y2="${iy+ih}" stroke="rgba(0,0,0,.25)"/>`;}}
+   if(tp.rail){if(w>hh){inner+=`<line x1="${ix}" y1="${iy+ih/2}" x2="${ix+iw}" y2="${iy+ih/2}" stroke="${tp.rail}" stroke-width="2"/>`;for(let i=0;i<6;i++)inner+=`<rect x="${ix+4+i*(iw-8)/6}" y="${iy+2}" width="${(iw-8)/6-2}" height="${ih-4}" fill="${sk.c.g[i%4]}" stroke="rgba(0,0,0,.15)"/>`;}else{inner+=`<line x1="${ix+iw/2}" y1="${iy}" x2="${ix+iw/2}" y2="${iy+ih}" stroke="${tp.rail}" stroke-width="2"/>`;for(let i=0;i<6;i++)inner+=`<rect x="${ix+2}" y="${iy+4+i*(ih-8)/6}" width="${iw-4}" height="${(ih-8)/6-2}" fill="${sk.c.g[i%4]}" stroke="rgba(0,0,0,.15)"/>`;}}
+   if(tp.inset)inner+=`<rect x="${ix+4}" y="${iy+4}" width="${Math.max(0,iw-8)}" height="${Math.max(0,ih-8)}" fill="none" stroke="rgba(0,0,0,.18)"/>`;
+   if(tp.arch)inner+=`<rect x="${ix}" y="${iy}" width="${w>hh?iw:6}" height="${w>hh?6:ih}" fill="${tp.arch}"/>`;
+   if(tp.L)inner+=`<path d="M${ix} ${iy+4} H${ix+iw-4} V${iy+ih*.7}" fill="none" stroke="${sk.c.p}" stroke-width="5"/>`;
+   h+=`<g data-u="${it.u}" style="cursor:grab"><rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="2" fill="#fff" filter="url(#sh)" stroke="${st}" stroke-width="${on?1.6:.8}" ${on?'stroke-dasharray="5 3"':''}/><rect x="${ix}" y="${iy}" width="${Math.max(0,iw)}" height="${Math.max(0,ih)}" fill="${tp.fill}"/>${inner}</g>`;
+   h+=`<text x="${x}" y="${y+hh+11}" font-size="8" font-weight="700" letter-spacing=".05em" fill="#555">${String(S.plan.indexOf(it)+1).padStart(2,'0')} / ${esc(c.name.toUpperCase().split(' ').slice(-2).join(' '))}</text>`;
+   if(on)h+=`<g transform="translate(${x+w/2},${y-12})"><rect x="-62" y="-9" width="124" height="16" rx="8" fill="#111"/><text text-anchor="middle" y="3" font-size="8" font-weight="700" fill="#fff" letter-spacing=".06em">SELECTED · MOVE / ROTATE</text></g>`;}
+  svg.innerHTML=`<defs><filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-opacity=".22"/></filter></defs>`+h;}
+ const ch2=checks();$('#cvhint').innerHTML=`<span class="${ch2.ov?'bad':''}">${ch2.ov?ch2.ov+' overlap':'No overlap ✓'}</span><span class="${ch2.door?'':'bad'}">${ch2.door?'Entry clear ✓':'Entry blocked'}</span><span>${S.route==='preview'?[45,135,225,315][S.view]+'°':S.plan.length+' pieces'}</span>`;}
+function toWorld(e){const svg=$('#cvs');const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());if(!G.iso)return [(q.x-G.ox)/G.k,(q.y-G.oy)/G.k];const a=(q.x-G.ox)/G.c,b=(q.y-G.oy)*2/G.k;return v2w((a+b)/2,(b-a)/2,S.view,ROOM.W,ROOM.D);}
+function bindWork(){const svg=$('#cvs');if(!svg)return;let drag=null;
+ svg.addEventListener('pointerdown',e=>{if(e.target.closest('[data-h]')){act('rot');return;}const g=e.target.closest('[data-u]');if(g){const it=S.plan.find(i=>i.u==g.dataset.u);S.sel=it.u;push();const w=toWorld(e);drag={it,dx:w[0]-it.x,dy:w[1]-it.y,moved:false};}else{S.sel=null;drag={sw:true,sx:e.clientX};}svg.setPointerCapture(e.pointerId);drawWork();refreshSide();});
+ svg.addEventListener('pointermove',e=>{if(!drag)return;if(drag.sw){if(S.route==='preview'&&Math.abs(e.clientX-drag.sx)>70){S.view=(S.view+(e.clientX>drag.sx?3:1))%4;drag.sx=e.clientX;drawWork();}return;}const w=toWorld(e);drag.it.x=w[0]-drag.dx;drag.it.y=w[1]-drag.dy;clampIt(drag.it);drag.moved=true;drawWork();});
+ svg.addEventListener('pointerup',()=>{if(drag&&drag.it){if(!drag.moved)hist.pop();else if(overlaps(drag.it))toast('Overlapping another piece');}drag=null;refreshSide();save();});
+ svg.addEventListener('wheel',e=>{if(S.route!=='preview')return;e.preventDefault();S.zoom=Math.max(.7,Math.min(1.8,S.zoom*(e.deltaY<0?1.08:1/1.08)));drawWork();},{passive:false});
+ // library drag
+ document.querySelectorAll('.li').forEach(el=>el.addEventListener('pointerdown',e=>{if(e.target.closest('.add'))return;const k=el.dataset.lk;let moved=false;const sx=e.clientX,sy=e.clientY;el.setPointerCapture(e.pointerId);const gh=document.createElement('div');gh.className='toast show';gh.style.cssText='position:fixed;bottom:auto;left:0;top:0;transform:translate(-50%,-140%);';gh.textContent='+ '+CAT[k].name;
+  el.onpointermove=ev=>{if(!moved&&Math.hypot(ev.clientX-sx,ev.clientY-sy)<8)return;if(!moved){moved=true;document.body.appendChild(gh);}gh.style.left=ev.clientX+'px';gh.style.top=ev.clientY+'px';};
+  el.onpointerup=ev=>{el.onpointermove=el.onpointerup=null;gh.remove();const r=svg.getBoundingClientRect();const inside=ev.clientX>r.left&&ev.clientX<r.right&&ev.clientY>r.top&&ev.clientY<r.bottom;if(moved&&!inside)return;if(!moved){S.sel=null;}addToPlan(k,moved?toWorld(ev):null);render();};}));
+ const ro=new ResizeObserver(()=>drawWork());ro.observe(svg);}
+function refreshSide(){const s=document.querySelector('.side');if(s){s.outerHTML=sideHTML();}const u=$('#undo'),r=$('#redo');if(u)u.disabled=!hist.length;if(r)r.disabled=!fut.length;}
+function act(a){const it=S.plan.find(i=>i.u===S.sel);if(!it)return;push();if(a==='rot'){const d0=dims(it);const cx=it.x+d0.w/2,cy=it.y+d0.d/2;it.rot=((it.rot||0)+1)%4;const d=dims(it);it.x=cx-d.w/2;it.y=cy-d.d/2;clampIt(it);}if(a==='dup'){const n={...it,u:uid++,x:it.x+.3,y:it.y+.3};clampIt(n);S.plan.push(n);findFree(n);S.sel=n.u;}if(a==='del'){S.plan=S.plan.filter(i=>i!==it);S.sel=null;toast('Peeled off · undo with ↶');}render();}
+// ================= BOOK =================
+function drawBook(){const el=$('#book');if(!el)return;const items=JSON.parse(el.dataset.items);const is=ISSUES[S.issue];const r=el.getBoundingClientRect();const cw=r.width||600,ch=r.height||360;
+ const sc=scene(items,{W:ROOM.W,D:ROOM.D,H:2.2,cw,ch,pad:22,r:0,floor:is.key==='mori'?'#E8D7B8':'#F6E7EC',wall:is.key==='mori'?'#F3EDE1':'#FBF1F4',planks:is.key==='mori',book:1,base:1.9,dy:-28});
+ let h=`<svg viewBox="0 0 ${cw} ${ch}" aria-label="Pop-up book: ${esc(is.title)}">${sc.svg}</svg><span class="arch">ARCHIVE / ${is.no}</span>`;
+ for(const [k,l] of is.tags){const idx=items.findIndex(i=>i.k===k);const tp=sc.tops['h'+idx];h+=`<button class="hot" style="left:${tp[0]/cw*100}%;top:${(tp[1]-6)/ch*100}%" data-item="${k}" data-sk="${skinFor(k,is.key)}">${l}</button>`;}
+ h+=`<div class="bk-nav"><button data-iss="-1" aria-label="Previous issue">←</button><button data-iss="1" aria-label="Next issue">→</button></div>`;el.innerHTML=h;}
+// ================= ROUTER / RENDER =================
+const PAGES={home:pHome,materials:pMaterials,item:pItem,reskin:pReskin,planner:()=>pWork('planner'),preview:()=>pWork('preview'),cart:pCart,sell:pSell};
+const JUMP=[['home','Home'],['materials','Materials'],['item','Item'],['reskin','AI Re-skin'],['planner','2D Planner'],['preview','3D Preview'],['cart','Cart'],['sell','Sell']];
+let tt;function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1700);}
+function go(r){S.route=r;const sc=$('#scroll');render();const s2=$('#scroll');if(s2)s2.scrollTop=0;try{history.replaceState(null,'','#'+r);}catch(e){}}
+function render(){const keep=$('#scroll')?.scrollTop||0;app.innerHTML=shell(PAGES[S.route]());const sc=$('#scroll');if(sc)sc.scrollTop=keep;
+ $('#jump').innerHTML=JUMP.map(([r,l])=>`<button data-go="${r}" class="${S.route===r?'on':''}">${l}</button>`).join('');
+ document.querySelectorAll('#devTg button').forEach(b=>b.classList.toggle('on',b.dataset.d===S.dev));
+ drawBook();if(S.route==='planner'||S.route==='preview'){drawWork();bindWork();}
+ const so=$('#sort');if(so)so.value=S.sort;fit();save();}
+// events (delegated)
+document.addEventListener('click',e=>{const t=e.target.closest('button,[data-item],label');if(!t)return;const d=t.dataset;
+ if(d.save){e.stopPropagation();const i=S.saved.indexOf(d.save);i<0?S.saved.push(d.save):S.saved.splice(i,1);toast(i<0?'Saved':'Removed from saved');render();return;}
+ if(d.go){go(d.go);return;}
+ if(d.item){S.itemK=d.item;S.itemSkin=d.sk!=null?+d.sk:CAT[d.item].skins.findIndex(x=>x.orig);go('item');return;}
+ if(d.d){S.dev=d.d;setDev();return;}
+ if(d.iss){S.issue=(S.issue+ +d.iss+ISSUES.length)%ISSUES.length;render();return;}
+ if(d.useIssue){const is=ISSUES[S.issue];push();S.mood=is.key;S.plan=is.items.map(p=>({...p,u:uid++,s:skinFor(p.k,is.key)}));S.sel=null;go('preview');toast('Loaded '+is.title+' layout');return;}
+ if(d.hf){S.filter=d.hf;render();return;}
+ if(d.isk!=null){S.itemSkin=+d.isk;render();return;}
+ if(d.addplan){addToPlan(d.addplan);render();return;}
+ if(d.rk){S.rk=d.rk;go('reskin');return;}
+ if(d.rkp){S.rk=d.rkp;render();return;}
+ if(d.mood){S.mood=d.mood;render();return;}
+ if(d.sk!=null&&S.route==='reskin'){const m=CAT[S.rk].skins[+d.sk].mood;if(m!=='orig')S.mood=m;render();return;}
+ if(d.applyrk){const k=d.applyrk;const si=skinFor(k,S.mood);push();const ex=S.plan.filter(p=>p.k===k);if(ex.length)ex.forEach(p=>p.s=si);else addToPlan(k);S.plan.forEach(p=>{p.s=skinFor(p.k,S.mood);});go('planner');toast('Applied '+MOODS[S.mood].n+' skins');return;}
+ if(d.lt){S.libTab=d.lt;render();return;}
+ if(d.addk){addToPlan(d.addk);render();return;}
+ if(d.act){act(d.act);return;}
+ if(d.rm){S.plan=S.plan.filter(p=>p.u!=d.rm);render();return;}
+ if(d.after!=null){t.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===t));return;}
+ if(t.id==='undo'){const p=hist.pop();if(p){fut.push(JSON.stringify(S.plan));S.plan=JSON.parse(p);render();}return;}
+ if(t.id==='redo'){const p=fut.pop();if(p){hist.push(JSON.stringify(S.plan));S.plan=JSON.parse(p);render();}return;}
+ if(t.id==='rl'){S.view=(S.view+3)%4;drawWork();return;}if(t.id==='rr'){S.view=(S.view+1)%4;drawWork();return;}
+ if(t.id==='zi'){S.zoom=Math.min(1.8,S.zoom*1.15);render();return;}if(t.id==='zo'){S.zoom=Math.max(.7,S.zoom/1.15);render();return;}
+ if(t.id==='saveP'){toast('Project saved · #0412');return;}
+ if(t.id==='req'){toast('Handover requested · partner will confirm');return;}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.item){e.target.click();}
+ if(!(S.route==='planner'||S.route==='preview')||e.target.tagName==='INPUT')return;if(e.key==='r'||e.key==='R')act('rot');if(e.key==='Delete'||e.key==='Backspace')act('del');if(e.key==='ArrowLeft'&&S.route==='preview'){S.view=(S.view+3)%4;drawWork();}if(e.key==='ArrowRight'&&S.route==='preview'){S.view=(S.view+1)%4;drawWork();}});
+document.addEventListener('input',e=>{const t=e.target;
+ if(t.id==='gq'){S.q=t.value;if(S.route!=='materials'){S.route='materials';render();const g=$('#gq');g.focus();g.setSelectionRange(g.value.length,g.value.length);}else{const v=t.value;render();const g=$('#gq');g.focus();g.setSelectionRange(v.length,v.length);}return;}
+ if(t.id==='libq'){S.libQ=t.value;render();const g=$('#libq');g.focus();g.setSelectionRange(t.value.length,t.value.length);return;}
+ if(t.id==='km'){S.maxKm=+t.value;render();return;}});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.dataset.cat){const c=t.dataset.cat;S.cats=t.checked?[...S.cats,c]:S.cats.filter(x=>x!==c);render();}
+ if(t.dataset.near!==undefined&&t.matches('[data-near]')){S.maxKm=t.checked?10:20;render();}
+ if(t.id==='ga'){S.gradeA=t.checked;render();}
+ if(t.id==='sort'){S.sort=t.value;render();}
+ if(t.id==='sc'){S.sellCat=t.value;}
+ if(t.id==='ph'){const fs=[...t.files].slice(0,8);Promise.all(fs.map(f=>new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(f);}))).then(us=>{S.photos=[...S.photos,...us].slice(0,8);render();toast('AI graded your photos');});}});
+document.addEventListener('submit',e=>{if(e.target.id!=='sf')return;e.preventDefault();S.sold.unshift({n:$('#sn').value||'Fixture',c:$('#sc').value,q:$('#sq').value||'1',p:+$('#spr').value||0});render();toast('Listing published');});
+// device frame
+function setDev(){const dev=$('#dev');dev.className='dev '+(S.dev==='web'?'web':'mob');render();}
+function fit(){const dev=$('#dev');if(S.dev!=='web'){dev.style.transform='';dev.style.marginBottom='';return;}const avail=$('#stagewrap').clientWidth-24;const s=Math.min(1,avail/1280);dev.style.transform=`scale(${s})`;dev.style.marginBottom=`${-(1-s)*820}px`;}
+window.addEventListener('resize',()=>{fit();drawBook();});
+// init
+const h0=(location.hash||'').slice(1);if(PAGES[h0])S.route=h0;
+if(window.innerWidth<600)S.dev='mob';
+$('#dev').className='dev '+(S.dev==='web'?'web':'mob');
+render();
+document.fonts&&document.fonts.ready.then(()=>{drawBook();drawWork();});
+}
+</script>
+</body>
+</html>
